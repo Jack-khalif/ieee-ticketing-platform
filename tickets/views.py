@@ -4,6 +4,7 @@ from .models import Ticket
 from .serializers import TicketSerializer
 from django.contrib.auth.models import User
 from django.utils import timezone
+from rest_framework.views import APIView
 
 class TicketPurchaseAPIView(generics.GenericAPIView):
     serializer_class = TicketSerializer
@@ -40,3 +41,42 @@ class TicketPurchaseAPIView(generics.GenericAPIView):
     - If everything is valid, it updates the ticket’s buyer and status to “sold”, and returns the updated ticket data in the response.
         
     '''
+class ScanTicketAPIView(APIView):
+
+    def post(self, request):
+
+        ticket_id = request.data.get("ticket_id")
+
+        try:
+            ticket = Ticket.objects.get(id=ticket_id)
+
+        except Ticket.DoesNotExist:
+            return Response(
+                {"message": "Invalid ticket"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if ticket.status == "checked_in":
+            return Response(
+                {"message": "Ticket already used"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if ticket.status != "sold":
+            return Response(
+                {"message": "Ticket not purchased"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        ticket.status = "checked_in"
+        ticket.save()
+
+        return Response(
+            {"message": "Entry allowed"},
+            status=status.HTTP_200_OK
+        )
+'''
+this logic scans the ticket, finds ticket in database, checks the status
+then updates to checked_in
+
+'''
