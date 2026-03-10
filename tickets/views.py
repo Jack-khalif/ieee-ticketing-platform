@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from .models import Ticket
 from .serializers import TicketSerializer
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class TicketPurchaseAPIView(generics.GenericAPIView):
     serializer_class = TicketSerializer
@@ -24,6 +25,10 @@ class TicketPurchaseAPIView(generics.GenericAPIView):
 
         ticket.buyer = user
         ticket.status = 'sold'
+        ticket.purchase_date = timezone.now()
+
+        ticket.generate_qr_code()
+    
         ticket.save()
 
         serializer = self.get_serializer(ticket)
