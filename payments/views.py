@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
+from tickets.tasks import send_ticket_email
 from .models import Payment
 from tickets.models import Ticket
 from django.contrib.auth.models import User
@@ -56,9 +57,14 @@ class ConfirmPaymentAPIView(APIView):
 
         ticket.status = "sold"
         ticket.buyer = payment.user
+        
         ticket.generate_qr_code()
-        ticket.save()
+        send_ticket_email.delay(payment.user.email, ticket.id)
 
+        ticket.save()
+        
         return Response({
             "message": "Payment confirmed. Ticket activated."
         })
+    
+
