@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import InitiatePaymentAPIView, ConfirmPaymentAPIView
+from .views import InitiatePaymentAPIView, MpesaCallbackAPIView
 
 urlpatterns = [
-    path('payments/initiate/', InitiatePaymentAPIView.as_view()),
-    path('payments/confirm/', ConfirmPaymentAPIView.as_view()),
+    path("initiate/", InitiatePaymentAPIView.as_view()),
+    path("callback/", MpesaCallbackAPIView.as_view()),
 ]
