@@ -12,7 +12,7 @@ class Ticket(models.Model):
         ('sold', 'Sold'),
         ('checked_in', 'Checked In'),
     ]
-
+    checked_in = models.BooleanField(default = False)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     buyer = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
     price = models.DecimalField(max_digits=10, decimal_places=2)

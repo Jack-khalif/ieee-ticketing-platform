@@ -80,3 +80,34 @@ this logic scans the ticket, finds ticket in database, checks the status
 then updates to checked_in
 
 '''
+class ValidateTicketAPIView(APIView):
+
+    def post(self, request):
+
+        ticket_id = request.data.get("ticket_id")
+
+        try:
+            ticket = Ticket.objects.get(id=ticket_id)
+
+        except Ticket.DoesNotExist:
+            return Response({"valid": False})
+
+        if ticket.status != "sold":
+            return Response({"valid": False})
+
+        if ticket.checked_in:
+            return Response({
+                "valid": False,
+                "message": "Ticket already used"
+            })
+
+        ticket.checked_in = True
+        ticket.save()
+
+        return Response({
+            "valid": True,
+            "message": "Welcome to the event"
+        })
+    '''
+    AT THE EVENT ENTRANCE, A SCANNER CHECKS TICKETS.
+    '''
