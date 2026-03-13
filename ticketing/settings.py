@@ -126,7 +126,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
-
+# For development only
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
@@ -139,4 +140,5 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "user": "10/minute"
     }
+
 }

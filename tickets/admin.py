@@ -1,5 +1,14 @@
+# tickets/admin.py
 from django.contrib import admin
-
-# Register your models here.
 from .models import Ticket
-admin.site.register(Ticket)
+from .tasks import send_ticket_email
+
+@admin.action(description="Send ticket email")
+def send_email(modeladmin, request, queryset):
+    for ticket in queryset:
+        send_ticket_email(ticket)
+
+@admin.register(Ticket)
+class TicketAdmin(admin.ModelAdmin):
+    list_display = ("id", "event", "buyer", "price", "checked_in")
+    actions = [send_email]

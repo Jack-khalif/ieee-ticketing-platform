@@ -1,22 +1,12 @@
-from celery import shared_task
 from django.core.mail import EmailMessage
-from .models import Ticket
-from .utils.pdf import generate_ticket_pdf
+from tickets.utils.pdf import generate_ticket_pdf # your PDF generator
 
-
-@shared_task
-def send_ticket_email(email, ticket_id):
-
-    ticket = Ticket.objects.get(id=ticket_id)
-
-    pdf_path = generate_ticket_pdf(ticket)
-
-    mail = EmailMessage(
-        subject="Your Event Ticket",
+def send_ticket_email(ticket):
+    pdf = generate_ticket_pdf(ticket)
+    email = EmailMessage(
+        subject=f"Your Ticket for {ticket.event.title}",
         body="Attached is your ticket.",
-        to=[email]
+        to=[ticket.buyer.email],
     )
-
-    mail.attach_file(pdf_path)
-
-    mail.send()
+    email.attach(f"ticket_{ticket.id}.pdf", pdf, "application/pdf")
+    email.send()
