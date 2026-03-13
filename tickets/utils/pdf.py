@@ -1,25 +1,41 @@
-import pdb
-
 from reportlab.pdfgen import canvas
-from django.conf import settings
-import os
+from reportlab.lib.utils import ImageReader
+from io import BytesIO
+import qrcode
+
 
 def generate_ticket_pdf(ticket):
+    buffer = BytesIO()
 
-    filename = f"ticket_{ticket.id}.pdf"
-    filepath = os.path.join(settings.MEDIA_ROOT, filename)
+    c = canvas.Canvas(buffer)
 
-    c = canvas.Canvas(filepath)
-
-    c.drawString(100, 750, "EVENT TICKET")
+    # Ticket text
+    c.drawString(100, 750, "Event Ticket")
     c.drawString(100, 720, f"Event: {ticket.event.title}")
-    c.drawString(100, 700, f"Buyer: {ticket.buyer.username}")
-    c.drawString(100, 680, f"Ticket ID: {ticket.id}")
+    c.drawString(100, 700, f"Ticket ID: {ticket.id}")
+    c.drawString(100, 680, f"Buyer: {ticket.buyer.username}")
 
-    if ticket.qr_code:
-        c.drawImage(ticket.qr_code.path, 100, 550, width=150, height=150)
-  
+    # -------- Generate QR Code --------
+    qr_data = f"TICKET-{ticket.id}"
+
+    qr = qrcode.make(qr_data)
+
+    qr_buffer = BytesIO()
+    qr.save(qr_buffer, format="PNG")
+    qr_buffer.seek(0)
+
+    qr_image = ImageReader(qr_buffer)
+
+    # place QR on the PDF
+    c.drawImage(qr_image, 400, 650, width=150, height=150)
 
     c.save()
 
-    return filepath
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    # Save locally for testing
+    with open(f"ticket_{ticket.id}.pdf", "wb") as f:
+        f.write(pdf)
+
+    return pdf
