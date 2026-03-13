@@ -127,7 +127,16 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 # For development only
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EEMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = "mugwewaithaka2@gmail.com"
+EMAIL_HOST_PASSWORD = "zybn zlqy krze dyun"
+
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
