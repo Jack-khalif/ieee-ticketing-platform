@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from rest_framework.views import APIView
 from django.http import JsonResponse
+from django.shortcuts import render
 
 class TicketPurchaseAPIView(generics.GenericAPIView):
     serializer_class = TicketSerializer
@@ -133,3 +134,5 @@ def verify_ticket(request, ticket_id):
             "valid": False,
             "message": "Invalid ticket"
         })
+def scanner_page(request):
+    return render(request, "tickets/scanner.html")
