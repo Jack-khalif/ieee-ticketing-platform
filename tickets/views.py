@@ -122,6 +122,8 @@ def verify_ticket(request, ticket_id):
                 "valid": False,
                 "message": "Ticket already used"
             })
+        ticket.checked_in = True
+        ticket.save()
 
         return JsonResponse({
             "valid": True,
@@ -134,5 +136,8 @@ def verify_ticket(request, ticket_id):
             "valid": False,
             "message": "Invalid ticket"
         })
+    
+     
+
 def scanner_page(request):
     return render(request, "tickets/scanner.html")
