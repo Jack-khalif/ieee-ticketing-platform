@@ -5,6 +5,7 @@ from .serializers import TicketSerializer
 from django.contrib.auth.models import User
 from django.utils import timezone
 from rest_framework.views import APIView
+from django.http import JsonResponse
 
 class TicketPurchaseAPIView(generics.GenericAPIView):
     serializer_class = TicketSerializer
@@ -111,3 +112,24 @@ class ValidateTicketAPIView(APIView):
     '''
     AT THE EVENT ENTRANCE, A SCANNER CHECKS TICKETS.
     '''
+def verify_ticket(request, ticket_id):
+    try:
+        ticket = Ticket.objects.get(id=ticket_id)
+
+        if ticket.checked_in:
+            return JsonResponse({
+                "valid": False,
+                "message": "Ticket already used"
+            })
+
+        return JsonResponse({
+            "valid": True,
+            "event": ticket.event.title,
+            "buyer": ticket.buyer.username
+        })
+
+    except Ticket.DoesNotExist:
+        return JsonResponse({
+            "valid": False,
+            "message": "Invalid ticket"
+        })
