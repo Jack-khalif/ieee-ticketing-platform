@@ -7,4 +7,6 @@ urlpatterns = [
     
     # 2. Matches: http://127.0.0.1:8000/api/events/create/
     path('create/', views.create_event, name='create-event'),
+    #fecth a single event by its id
+    path('<int:pk>/', views.EventDetailAPIView.as_view(), name='detail-event'),
 ]
