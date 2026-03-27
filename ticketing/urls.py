@@ -7,7 +7,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     
     # This routes anything starting with /api/events/ to your events app!
-    path('api/events/', include('events.urls')), 
+    path('api/events/', include('events.urls')),
+    #To recognize thr auth traffic to the users app 
+    path('api/users/', include('users.urls')),
 ]
 
 # Serve media files in development
