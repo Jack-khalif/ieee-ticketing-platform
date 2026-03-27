@@ -10,6 +10,7 @@ urlpatterns = [
     path('api/events/', include('events.urls')),
     #To recognize thr auth traffic to the users app 
     path('api/users/', include('users.urls')),
+    path('api/tickets/', include('tickets.urls')),
 ]
 
 # Serve media files in development

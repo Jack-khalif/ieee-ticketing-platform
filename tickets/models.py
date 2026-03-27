@@ -1,37 +1,30 @@
+import uuid
 from django.db import models
 from django.contrib.auth.models import User
-from events.models import Event
-import qrcode
-from io import BytesIO
-from django.core.files import File
+from events.models import Event # We import the Event model so we can link to it!
 
 class Ticket(models.Model):
+    # 1. WHAT ARE THEY GOING TO?
+    # related_name='tickets' allows us to easily find all tickets for a specific event
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='tickets')
+    
+    # 2. WHO BOUGHT IT? (Handles both Logged In users and Guests)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    guest_name = models.CharField(max_length=100, null=True, blank=True)
+    guest_email = models.EmailField(null=True, blank=True)
+    
+    # 3. THE TICKET ITSELF
+    ticket_id = models.CharField(max_length=20, unique=True, blank=True)
+    purchase_date = models.DateTimeField(auto_now_add=True)
+    is_scanned = models.BooleanField(default=False) # For the organizers at the door!
 
-    STATUS_CHOICES = [
-        ('available', 'Available'),
-        ('sold', 'Sold'),
-        ('checked_in', 'Checked In'),
-    ]
-    checked_in = models.BooleanField(default = False)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    buyer = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
-    purchase_date = models.DateTimeField(null=True, blank=True)
-    qr_code = models.ImageField(upload_to="qr_codes/", blank=True, null=True)
+    def save(self, *args, **kwargs):
+        # Automatically generate a unique 8-character ticket code if it doesn't exist
+        if not self.ticket_id:
+            # Example: "TIX-A1B2C3D4"
+            self.ticket_id = f"TIX-{uuid.uuid4().hex[:8].upper()}"
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.event.title} Ticket #{self.id}"
-
-    def generate_qr_code(self):
-
-        qr_data = f"ticket_id:{self.id}"
-
-        qr_img = qrcode.make(qr_data)
-
-        buffer = BytesIO()
-        qr_img.save(buffer, format="PNG")
-
-        filename = f"ticket_{self.id}.png"
-
-        self.qr_code.save(filename, File(buffer), save=False)
+        owner = self.user.username if self.user else self.guest_name
+        return f"{self.ticket_id} | {self.event.title} | {owner}"
