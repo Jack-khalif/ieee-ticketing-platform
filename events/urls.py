@@ -1,6 +1,10 @@
 from django.urls import path
-from .views import EventListAPIView
+from . import views
 
 urlpatterns = [
-    path('events/', EventListAPIView.as_view(), name='event-list'),
+    # 1. Matches: http://127.0.0.1:8000/api/events/
+    path('', views.EventListAPIView.as_view(), name='list-events'),
+    
+    # 2. Matches: http://127.0.0.1:8000/api/events/create/
+    path('create/', views.create_event, name='create-event'),
 ]

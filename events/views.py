@@ -1,14 +1,31 @@
-from rest_framework import generics
+from rest_framework import status, generics
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+
 from .models import Event
 from .serializers import EventSerializer
 
+# ==========================================
+# 1. THE RESTORED LIST VIEW
+# (This serves data to your React Home Page)
+# ==========================================
 class EventListAPIView(generics.ListAPIView):
-    queryset = Event.objects.all()
+    queryset = Event.objects.all().order_by('-id') # Shows newest events first
     serializer_class = EventSerializer
 
-'''
-This is a simple API view that lists all events.
-- generics.ListAPIView → a built-in view that provides a read-only endpoint to list all instances of a model.
-- queryset → defines which data to retrieve (all events).
-- serializer_class → specifies how to convert the Event objects into JSON format for the API response.
-'''
+# ==========================================
+# 2. THE NEW CREATE VIEW
+# (This handles the FormData and Image Uploads)
+# ==========================================
+@api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser]) 
+def create_event(request):
+    serializer = EventSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+    print(serializer.errors) # Helpful for terminal debugging
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
