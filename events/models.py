@@ -7,6 +7,7 @@ class Event(models.Model):
     date = models.DateTimeField()
     capacity = models.IntegerField()
     ticket_price = models.DecimalField(max_digits=10, decimal_places=2)
+    image = models.ImageField(upload_to='posters/', null=True, blank=True)
 
     def __str__(self):
         return self.title
