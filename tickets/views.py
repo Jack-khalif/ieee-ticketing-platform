@@ -45,3 +45,44 @@ def purchase_tickets(request):
         "quantity": quantity,
         "ticket_ids": created_tickets # e.g., ["TIX-1A2B3C4D", "TIX-5E6F7G8H"]
     }, status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+@permission_classes([AllowAny]) # Note: In a production app, we would restrict this to Organizers only!
+def scan_ticket(request):
+    ticket_id = request.data.get('ticket_id')
+
+    if not ticket_id:
+        return Response({"error": "No ticket ID provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        # 1. Look for the ticket in the database
+        ticket = Ticket.objects.get(ticket_id=ticket_id)
+        
+        # Helper variable to get the buyer's name
+        buyer_name = ticket.user.username if ticket.user else ticket.guest_name
+
+        # 2. Did they already use this ticket?
+        if ticket.is_scanned:
+            return Response({
+                "status": "error",
+                "message": "ALREADY SCANNED",
+                "details": f"Ticket belongs to {buyer_name} but was already used."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # 3. If it's valid, mark it as used so they can't pass it to a friend!
+        ticket.is_scanned = True
+        ticket.save()
+
+        return Response({
+            "status": "success",
+            "message": "VALID TICKET",
+            "details": f"Admit 1: {buyer_name} to {ticket.event.title}"
+        }, status=status.HTTP_200_OK)
+
+    except Ticket.DoesNotExist:
+        # 4. They scanned a fake or deleted ticket
+        return Response({
+            "status": "error",
+            "message": "INVALID TICKET",
+            "details": "This ticket does not exist in the database."
+        }, status=status.HTTP_404_NOT_FOUND)
