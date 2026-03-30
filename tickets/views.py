@@ -86,3 +86,39 @@ def scan_ticket(request):
             "message": "INVALID TICKET",
             "details": "This ticket does not exist in the database."
         }, status=status.HTTP_404_NOT_FOUND)
+@api_view(['GET'])
+@permission_classes([AllowAny]) # Note: In production, we'd lock this to the Event Creator!
+def event_dashboard(request, event_id):
+    # 1. Grab the event
+    event = get_object_or_404(Event, id=event_id)
+    
+    # 2. Get all tickets for this specific event, ordered by newest first
+    tickets = Ticket.objects.filter(event=event).order_by('-purchase_date')
+
+    # 3. Calculate the stats!
+    total_sold = tickets.count()
+    total_revenue = float(event.ticket_price) * total_sold
+    scanned_count = tickets.filter(is_scanned=True).count()
+
+    # 4. Create a clean list of the latest buyers for our React table
+    sales_data = []
+    for t in tickets[:10]: # Just grab the 10 most recent sales for the preview
+        buyer_name = t.user.username if t.user else t.guest_name
+        buyer_email = t.user.email if t.user else t.guest_email
+        
+        sales_data.append({
+            "ticket_id": t.ticket_id,
+            "buyer": buyer_name or "Unknown Guest",
+            "email": buyer_email or "No email provided",
+            "date": t.purchase_date.strftime("%b %d, %Y - %H:%M"),
+            "is_scanned": t.is_scanned
+        })
+
+    # 5. Ship it to the frontend!
+    return Response({
+        "event_title": event.title,
+        "total_sold": total_sold,
+        "total_revenue": total_revenue,
+        "scanned_count": scanned_count,
+        "recent_sales": sales_data
+    }, status=status.HTTP_200_OK)
