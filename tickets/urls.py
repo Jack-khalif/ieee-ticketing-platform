@@ -6,5 +6,5 @@ urlpatterns = [
     path('purchase/', views.purchase_tickets, name='purchase_tickets'),
     path('scan/', views.scan_ticket, name='scan_ticket'),
     path('dashboard/<int:event_id>/', views.event_dashboard, name='event_dashboard'),
-    
+    path('dashboard/<int:event_id>/blast/', views.send_event_blast, name='send_event_blast'),
 ]
