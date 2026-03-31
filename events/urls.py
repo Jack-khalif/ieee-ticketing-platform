@@ -9,4 +9,6 @@ urlpatterns = [
     path('create/', views.create_event, name='create-event'),
     #fecth a single event by its id
     path('<int:pk>/', views.EventDetailAPIView.as_view(), name='detail-event'),
+    path('<int:pk>/update/', views.update_event, name='update_event'),
+    
 ]
