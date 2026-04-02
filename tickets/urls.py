@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 
+
 urlpatterns = [
     # Matches: http://127.0.0.1:8000/api/tickets/purchase/
     path('purchase/', views.purchase_tickets, name='purchase_tickets'),
@@ -8,4 +9,4 @@ urlpatterns = [
     path('dashboard/<int:event_id>/', views.event_dashboard, name='event_dashboard'),
     path('dashboard/<int:event_id>/blast/', views.send_event_blast, name='send_event_blast'),
     path('ticket/<str:ticket_id>/', views.get_ticket_details, name='get_ticket_details'),
-]
+] 
