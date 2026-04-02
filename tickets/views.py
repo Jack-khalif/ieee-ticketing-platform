@@ -14,7 +14,7 @@ def purchase_tickets(request):
     data = request.data
     event_id = data.get('event_id')
     
-    # 🚀 NEW: We now expect an array of attendees from React!
+    #  NEW: We now expect an array of attendees from React!
     # Example: [{"name": "Jane", "email": "jane@mail.com"}, {"name": "John", "email": "john@mail.com"}]
     attendees = data.get('attendees', []) 
     
@@ -34,36 +34,31 @@ def purchase_tickets(request):
         )
         created_tickets.append(ticket.ticket_id)
         
-    # 3. THE EMAIL ENGINE: Send one master receipt to the main buyer
+    # 3. THE EMAIL ENGINE: Send a clean email with dynamic links!
     if attendees:
         buyer_email = attendees[0].get('email')
         buyer_name = attendees[0].get('name')
         
-        ticket_list_string = "\n".join([f"- {tid}" for tid in created_tickets])
+        # NEW: Generate a clickable link for EVERY ticket
+        ticket_links = "\n".join([f"- {tid}: http://localhost:5173/ticket/{tid}" for tid in created_tickets])
         
         subject = f"Your Tickets for {event.title}"
         message = f"""Hi {buyer_name},
 
 You're going to {event.title}!
 
-Here are your Ticket IDs. Have them ready to show at the door:
-{ticket_list_string}
+Click the links below to view your digital tickets and scannable QR codes for the door:
+
+{ticket_links}
 
 See you there!
 The Events Team"""
         
         try:
             send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [buyer_email], fail_silently=False)
-            print(f"✅ SUCCESS: Email sent to {buyer_email}")
+            print(f" SUCCESS: Email sent to {buyer_email} with links!")
         except Exception as e:
-            print(f"❌ EMAIL ERROR: {e}")
-
-    return Response({
-        "message": "Tickets minted successfully!",
-        "event": event.title,
-        "quantity": len(created_tickets),
-        "ticket_ids": created_tickets
-    }, status=status.HTTP_201_CREATED)
+            print(f" EMAIL ERROR: {e}")
 @api_view(['POST'])
 @permission_classes([AllowAny]) # Note: In a production app, we would restrict this to Organizers only!
 def scan_ticket(request):
@@ -186,4 +181,18 @@ def send_event_blast(request, event_id):
 
     return Response({
         "message": f"Email blasted successfully to {len(recipient_emails)} attendees!"
+    }, status=status.HTTP_200_OK)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_ticket_details(request, ticket_id):
+    """Allows anyone with the link to view their digital ticket."""
+    ticket = get_object_or_404(Ticket, ticket_id=ticket_id)
+    buyer_name = ticket.user.username if ticket.user else ticket.guest_name
+    
+    return Response({
+        "ticket_id": ticket.ticket_id,
+        "event_title": ticket.event.title,
+        "event_date": ticket.event.date.strftime('%B %d, %Y - %H:%M') if ticket.event.date else 'TBA',
+        "buyer_name": buyer_name,
+        "is_scanned": ticket.is_scanned
     }, status=status.HTTP_200_OK)
