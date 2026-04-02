@@ -1,3 +1,4 @@
+import uuid
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import Event
@@ -11,7 +12,8 @@ def create_tickets(sender, instance, created, **kwargs):
         tickets = [
             Ticket(
                 event=instance,
-                price=instance.ticket_price
+                #price=instance.ticket_price
+                ticket_id=f"TIX-{uuid.uuid4().hex[:8].upper()}"
             )
             for _ in range(instance.capacity)
         ]
