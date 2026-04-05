@@ -1,0 +1,39 @@
+name: Backend CI Pipeline
+
+# Run when someone opens a PR to main
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-django:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Install the exact Python version your Render server uses
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.3' 
+          cache: 'pip'
+
+      # Install your Django requirements
+      - name: Install Dependencies
+        # NOTE: If your requirements.txt is inside a 'backend' or 'ticketing' folder, 
+        # you need to add "working-directory: ./your-folder-name" right above the run command!
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Run a system check to ensure the server doesn't crash on boot
+      - name: Django System Check
+        # We pass dummy environment variables just so Django can boot safely in the cloud test
+        
+        env:
+          SECRET_KEY: 'dummy-secret-key-for-testing-only'
+          DEBUG: 'True'
+        run: python manage.py check
