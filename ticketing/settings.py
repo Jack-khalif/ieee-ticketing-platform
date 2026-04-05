@@ -45,7 +45,7 @@ INSTALLED_APPS = [
      'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     'cloudinary_storage',           
-    'cloudinary'
+    'cloudinary',
     'django_extensions',
     'rest_framework',
     'corsheaders',
