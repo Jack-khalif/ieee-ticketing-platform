@@ -3,6 +3,8 @@ from rest_framework.decorators import api_view, parser_classes , permission_clas
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from .models import Event
 from .serializers import EventSerializer
