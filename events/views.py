@@ -76,3 +76,11 @@ def update_event(request, pk):
         }, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['DELETE'])
+def delete_all_events(request):
+    # TEMPORARY - remove after use!
+    secret = request.query_params.get('secret')
+    if secret != 'cleanup2024':
+        return Response({'error': 'Unauthorized'}, status=403)
+    count, _ = Event.objects.all().delete()
+    return Response({'deleted': count})
