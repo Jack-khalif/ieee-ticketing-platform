@@ -12,11 +12,18 @@ from .serializers import EventSerializer
 # (This serves data to your React Home Page)
 # ==========================================
 class EventListAPIView(generics.ListAPIView):
-    queryset = Event.objects.all().order_by('-id') # Shows newest events first
     serializer_class = EventSerializer
+
+    def get_queryset(self):
+        queryset = Event.objects.all().order_by('date')
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category=category)
+        return queryset
 class EventDetailAPIView(generics.RetrieveAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
+
 # ==========================================
 # 2. THE NEW CREATE VIEW
 # (This handles the FormData and Image Uploads)
@@ -69,3 +76,11 @@ def update_event(request, pk):
         }, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['DELETE'])
+def delete_all_events(request):
+    # TEMPORARY - remove after use!
+    secret = request.query_params.get('secret')
+    if secret != 'cleanup2024':
+        return Response({'error': 'Unauthorized'}, status=403)
+    count, _ = Event.objects.all().delete()
+    return Response({'deleted': count})

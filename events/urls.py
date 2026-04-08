@@ -10,5 +10,6 @@ urlpatterns = [
     #fecth a single event by its id
     path('<int:pk>/', views.EventDetailAPIView.as_view(), name='detail-event'),
     path('<int:pk>/update/', views.update_event, name='update_event'),
+    path('delete-all/', views.delete_all_events, name='delete-all'),
     
 ]
