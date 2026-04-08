@@ -1,7 +1,9 @@
 from rest_framework import serializers
-from .models import Event # Ensure this matches your actual model name!
+from .models import Event
 
 class EventSerializer(serializers.ModelSerializer):
+    is_past = serializers.ReadOnlyField()
+
     class Meta:
         model = Event
-        fields = '__all__' # This tells Django to accept all fields (title, date, image, etc.)
+        fields = '__all__'

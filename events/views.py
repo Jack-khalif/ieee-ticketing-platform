@@ -12,11 +12,18 @@ from .serializers import EventSerializer
 # (This serves data to your React Home Page)
 # ==========================================
 class EventListAPIView(generics.ListAPIView):
-    queryset = Event.objects.all().order_by('-id') # Shows newest events first
     serializer_class = EventSerializer
+
+    def get_queryset(self):
+        queryset = Event.objects.all().order_by('date')
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category=category)
+        return queryset
 class EventDetailAPIView(generics.RetrieveAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
+
 # ==========================================
 # 2. THE NEW CREATE VIEW
 # (This handles the FormData and Image Uploads)
