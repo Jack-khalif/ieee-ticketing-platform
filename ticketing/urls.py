@@ -6,11 +6,13 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # This routes anything starting with /api/events/ to your events app!
+    # API routes
     path('api/events/', include('events.urls')),
-    #To recognize thr auth traffic to the users app 
     path('api/users/', include('users.urls')),
     path('api/tickets/', include('tickets.urls')),
 ]
 
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Only serve media files locally when DEBUG=True
+# (In production on Render, Cloudinary handles all images)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
