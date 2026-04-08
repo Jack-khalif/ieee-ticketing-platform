@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from events.models import Event # We import the Event model so we can link to it!
 
 class Ticket(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # 1. WHAT ARE THEY GOING TO?
     # related_name='tickets' allows us to easily find all tickets for a specific event
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='tickets')
