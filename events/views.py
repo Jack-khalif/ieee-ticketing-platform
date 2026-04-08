@@ -3,6 +3,8 @@ from rest_framework.decorators import api_view, parser_classes , permission_clas
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from .models import Event
 from .serializers import EventSerializer
@@ -76,9 +78,9 @@ def update_event(request, pk):
         }, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-@api_view(['DELETE'])
+@csrf_exempt
+@api_view(['DELETE', 'GET'])  # added GET so you can trigger it from browser directly
 def delete_all_events(request):
-    # TEMPORARY - remove after use!
     secret = request.query_params.get('secret')
     if secret != 'cleanup2024':
         return Response({'error': 'Unauthorized'}, status=403)
