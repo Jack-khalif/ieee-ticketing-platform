@@ -13,52 +13,63 @@ from .models import Ticket
 def purchase_tickets(request):
     data = request.data
     event_id = data.get('event_id')
-    
-    #  NEW: We now expect an array of attendees from React!
-    # Example: [{"name": "Jane", "email": "jane@mail.com"}, {"name": "John", "email": "john@mail.com"}]
-    attendees = data.get('attendees', []) 
+    attendees = data.get('attendees', [])
     
     event = get_object_or_404(Event, id=event_id)
     created_tickets = []
     
-    # 1. Who is the actual buyer? (This safely fixes the AnonymousUser bug!)
     actual_user = request.user if request.user.is_authenticated else None
 
-    # 2. Mint a unique ticket for EVERY person in the attendees list
     for attendee in attendees:
         ticket = Ticket.objects.create(
             event=event,
-            user=actual_user, # If logged in, this attaches all 3 tickets to the buyer's account!
+            user=actual_user,
             guest_name=attendee.get('name'),
             guest_email=attendee.get('email')
         )
-        created_tickets.append(ticket.ticket_id)
+        created_tickets.append(str(ticket.ticket_id))
         
-    # 3. THE EMAIL ENGINE: Send a clean email with dynamic links!
     if attendees:
         buyer_email = attendees[0].get('email')
         buyer_name = attendees[0].get('name')
         
-        # NEW: Generate a clickable link for EVERY ticket
-        ticket_links = "\n".join([f"- {tid}: http://localhost:5173/ticket/{tid}" for tid in created_tickets])
+        # Fixed: uses live domain not localhost
+        base_url = "https://eventify-plum.vercel.app"
+        ticket_links = "\n".join([
+            f"- View ticket: {base_url}/ticket/{tid}" 
+            for tid in created_tickets
+        ])
         
         subject = f"Your Tickets for {event.title}"
         message = f"""Hi {buyer_name},
 
 You're going to {event.title}!
 
-Click the links below to view your digital tickets and scannable QR codes for the door:
+Click the links below to view your digital tickets and QR codes:
 
 {ticket_links}
 
 See you there!
-The Events Team"""
+The Eventify Team"""
         
         try:
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [buyer_email], fail_silently=False)
-            print(f" SUCCESS: Email sent to {buyer_email} with links!")
+            send_mail(
+                subject, message,
+                settings.DEFAULT_FROM_EMAIL,
+                [buyer_email],
+                fail_silently=False
+            )
         except Exception as e:
-            print(f" EMAIL ERROR: {e}")
+            print(f"EMAIL ERROR: {e}")
+
+    # THIS WAS MISSING — caused the 500/no response bug
+    return Response({
+        "message": "Tickets purchased successfully!",
+        "ticket_ids": created_tickets,
+        "event_title": event.title,
+        "buyer_name": attendees[0].get('name') if attendees else "",
+        "buyer_email": attendees[0].get('email') if attendees else "",
+    }, status=status.HTTP_201_CREATED)
 @api_view(['POST'])
 @permission_classes([AllowAny]) # Note: In a production app, we would restrict this to Organizers only!
 def scan_ticket(request):
