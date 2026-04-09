@@ -25,6 +25,7 @@ class EventListAPIView(generics.ListAPIView):
 class EventDetailAPIView(generics.RetrieveAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
+    lookup_field = 'slug'
 
 # ==========================================
 # 2. THE NEW CREATE VIEW
@@ -71,7 +72,7 @@ def update_event(request, pk):
         return Response({
             "message": "Event updated successfully!",
             "event": {
-                "id": event.id,
+                "id": event.slug,
                 "title": event.title,
                 "ticket_price": event.ticket_price
             }
