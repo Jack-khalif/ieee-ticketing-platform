@@ -72,7 +72,7 @@ def update_event(request, pk):
         return Response({
             "message": "Event updated successfully!",
             "event": {
-                "id": event.id,
+                "id": event.slug,
                 "title": event.title,
                 "ticket_price": event.ticket_price
             }
