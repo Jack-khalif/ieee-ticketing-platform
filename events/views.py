@@ -25,6 +25,7 @@ class EventListAPIView(generics.ListAPIView):
 class EventDetailAPIView(generics.RetrieveAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
+    lookup_field = 'slug'
 
 # ==========================================
 # 2. THE NEW CREATE VIEW
