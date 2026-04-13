@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from .models import Event
+from django.core.mail import send_mail
 from .serializers import EventSerializer
 
 # ==========================================
@@ -41,6 +42,19 @@ def create_event(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
         
     print(serializer.errors) # Helpful for terminal debugging
+    try:
+        # 2. Fire the email!
+        send_mail(
+            subject="Your Event is Live! 🚀",
+            message="Congratulations! Your event has been successfully created on Eventify. Get ready to host without the empty seats!",
+            from_email="onboarding@resend.dev", 
+            # 3. MUST be the email you used to create your Resend account for this test
+            recipient_list=["your-personal-email@gmail.com"], 
+            fail_silently=False,
+        )
+        print("Email sent successfully!")
+    except Exception as e:
+        print(f"Email failed to send: {e}")
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
