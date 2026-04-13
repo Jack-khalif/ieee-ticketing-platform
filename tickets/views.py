@@ -7,6 +7,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 from events.models import Event
 from .models import Ticket
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -33,36 +35,42 @@ def purchase_tickets(request):
         buyer_email = attendees[0].get('email')
         buyer_name = attendees[0].get('name')
         
-        # Fixed: uses live domain not localhost
         base_url = "https://eventify-plum.vercel.app"
-        ticket_links = "\n".join([
-            f"- View ticket: {base_url}/ticket/{tid}" 
-            for tid in created_tickets
-        ])
+        # Create a list of URLs so we can pass them to the HTML template
+        ticket_urls = [f"{base_url}/ticket/{tid}" for tid in created_tickets]
         
-        subject = f"Your Tickets for {event.title}"
-        message = f"""Hi {buyer_name},
+        # 1. Prepare the dynamic data for the HTML template
+        context = {
+            'event_title': event.title,
+            # Safe date formatting (falls back to TBA if missing)
+            'event_date': event.date.strftime("%B %d, %Y") if event.date else "TBA",
+            'event_time': event.time.strftime("%I:%M %p") if event.time else "TBA",
+            'event_location': event.location,
+            'ticket_type': "General Admission",
+            'buyer_name': buyer_name,
+            'ticket_urls': ticket_urls # Passed to context for future use!
+        }
 
-You're going to {event.title}!
-
-Click the links below to view your digital tickets and QR codes:
-
-{ticket_links}
-
-See you there!
-The Eventify Team"""
+        # 2. Render the HTML string
+        html_message = render_to_string('emails/ticket_confirmation.html', context)
+        
+        # 3. Create a plain-text fallback (in case their email app blocks HTML)
+        plain_message = strip_tags(html_message)
         
         try:
+            # 4. Fire the HTML email!
             send_mail(
-                subject, message,
-                settings.DEFAULT_FROM_EMAIL,
-                [buyer_email],
+                subject=f"🎟️ Your Tickets for {event.title}",
+                message=plain_message,
+                from_email="onboarding@resend.dev", # Keep this until you buy a domain
+                recipient_list=[buyer_email], # Note: Must be your Resend email for now!
+                html_message=html_message, # 🚀 THIS IS THE MAGIC LINE
                 fail_silently=False
             )
+            print("HTML Email sent successfully!")
         except Exception as e:
             print(f"EMAIL ERROR: {e}")
 
-    # THIS WAS MISSING — caused the 500/no response bug
     return Response({
         "message": "Tickets purchased successfully!",
         "ticket_ids": created_tickets,
